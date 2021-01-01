@@ -1,0 +1,9 @@
+
+]
+java:S1119";Refactor the code to remove this label and the need for it.(ğšÅ“úÿÿÿÿ8‡¦Ğúë.
+o
+java:S3776"RRefactor this method to reduce its Cognitive Complexity from 50 to the 15 allowed.(ÛÛ¯ø8»Î¶úë.
+t	java:S135#"YReduce the total number of break and continue statements in this loop to use at most one.(¤èÄ78¸ß·úë.
+X
+java:S1119";Refactor the code to remove this label and the need for it.(Ù²§¦8‡ãÕúë.
+t	java:S135;"YReduce the total number of break and continue statements in this loop to use at most one.(¤èÄ78»Î¶úë.
