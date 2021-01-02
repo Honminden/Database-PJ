@@ -1,3 +1,8 @@
+/**
+ * 实现SQL连接
+ * 可修改URL，USERNAME和PASSWORD以连接到相应的数据库
+ */
+
 package service.sql;
 
 import java.sql.Connection;

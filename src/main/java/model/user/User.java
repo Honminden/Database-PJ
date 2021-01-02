@@ -1,3 +1,7 @@
+/**
+ * 用户信息
+ */
+
 package model.user;
 
 public abstract class User
@@ -24,7 +28,7 @@ public abstract class User
         return "User";
     }
     
-    public abstract void routine();
+    public abstract void routine(); // 用户对应的权限操作
     
     public static User getInstance(String username, String password, String type)
     {

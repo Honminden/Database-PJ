@@ -158,7 +158,8 @@ public class Root extends User
                         System.out.println("##【root账户权限操作】无此医护人员类型，请重试。");
                     }
                 }
-                
+    
+                // 向数据库中加入新用户
                 AccountUtil.addUser(user);
                 System.out.println(String.format("##【root账户权限操作】添加新用户%s成功。", user.getUsername()));
             }
@@ -234,6 +235,7 @@ public class Root extends User
                     }
                 }
     
+                //更新数据库中用户信息
                 AccountUtil.updateUser(user);
                 System.out.println(String.format("##【root账户权限操作】修改用户%s成功。", user.getUsername()));
             }
@@ -265,6 +267,7 @@ public class Root extends User
                 User user = AccountUtil.getUser(username);
                 if (user != null)
                 {
+                    // 删除数据库中用户信息
                     AccountUtil.removeUser(user);
                     System.out.println(String.format("##【root账户权限操作】删除用户%s成功。", user.getUsername()));
                 }

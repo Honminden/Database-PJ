@@ -10,6 +10,7 @@ public class Main
     
     public static void main(String[] args)
     {
+        // 欢迎界面
         System.out.println("##欢迎进入复旦医院管理系统。");
         system:
         while (true)

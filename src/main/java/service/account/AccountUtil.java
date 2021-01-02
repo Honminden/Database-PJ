@@ -1,6 +1,7 @@
 /**
  * 实现账户管理功能
  */
+
 package service.account;
 
 import model.user.User;
@@ -16,6 +17,12 @@ public class AccountUtil
     public static boolean usernameExists(String username)
     {
         return getUser(username) != null;
+    }
+    
+    private static void handleExceptions(Exception e)
+    {
+        System.out.println("##【SQL错误】请检查数据库并重新登录系统。");
+        System.exit(-1);
     }
     
     public static User getUser(String username, String password)
@@ -58,8 +65,7 @@ public class AccountUtil
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
-            System.out.println("##【SQL错误】请重试。");
+            handleExceptions(e);
         }
         return null;
     }
@@ -89,8 +95,7 @@ public class AccountUtil
         }
         catch (Exception e)
         {
-            System.out.println(e.getMessage());
-            System.out.println("##【SQL错误】请重试。");
+            handleExceptions(e);
         }
         return users;
     }
@@ -110,7 +115,7 @@ public class AccountUtil
         }
         catch (Exception e)
         {
-            System.out.println("##【SQL错误】请重试。");
+            handleExceptions(e);
         }
     }
     
@@ -129,7 +134,7 @@ public class AccountUtil
         }
         catch (Exception e)
         {
-            System.out.println("##【SQL错误】请重试。");
+            handleExceptions(e);
         }
     }
     
@@ -146,7 +151,7 @@ public class AccountUtil
         }
         catch (Exception e)
         {
-            System.out.println("##【SQL错误】请重试。");
+            handleExceptions(e);
         }
     }
 }
