@@ -34,10 +34,10 @@ public class Main
                         // root账户登录
                         while (true)
                         {
-                            System.out.println("##【root账户登录】请输入密码，或输入“exit”退出登录：");
+                            System.out.println("##【root账户登录】请输入密码，或输入“cancel”取消登录：");
                             System.out.print(">");
                             String password = scanner.nextLine();
-                            if (password.equals("exit"))
+                            if (password.equals("cancel"))
                             {
                                 break;
                             }
@@ -58,10 +58,10 @@ public class Main
                         // 普通账户登录
                         while (true)
                         {
-                            System.out.println("##请输入密码，或输入“exit”退出登录：");
+                            System.out.println("##请输入密码，或输入“cancel”取消登录：");
                             System.out.print(">");
                             String password = scanner.nextLine();
-                            if (password.equals("exit"))
+                            if (password.equals("cancel"))
                             {
                                 break;
                             }
