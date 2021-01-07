@@ -19,12 +19,6 @@ public class AccountUtil
         return getUser(username) != null;
     }
     
-    private static void handleExceptions(Exception e)
-    {
-        System.out.println("##【SQL错误】请检查数据库并重新登录系统。");
-        System.exit(-1);
-    }
-    
     public static User getUser(String username, String password)
     {
         User user = getUser(username);
@@ -45,16 +39,19 @@ public class AccountUtil
         {
             // 查找用户名
             Connection con = SQLUtil.getConnection();
-            PreparedStatement findUserByUsername = con.prepareStatement("select * from users where username=?");
+            PreparedStatement findUserByUsername = con.prepareStatement("select * from user where username=?");
             findUserByUsername.setString(1, username);
             try (ResultSet usersFound = findUserByUsername.executeQuery())
             {
                 if (usersFound.next())
                 {
+                    String id = usersFound.getString("u_id");
                     String password = usersFound.getString("password");
-                    String type = usersFound.getString("type");
+                    String name = usersFound.getString("name");
+                    String type = usersFound.getString("post");
+                    String area = usersFound.getString("area");
                     con.close();
-                    return User.getInstance(username, password, type);
+                    return User.getInstance(id, username, password, name, area, type);
                 }
                 else
                 {
@@ -65,7 +62,7 @@ public class AccountUtil
         }
         catch (Exception e)
         {
-            handleExceptions(e);
+            SQLUtil.handleExceptions(e);
         }
         return null;
     }
@@ -77,25 +74,34 @@ public class AccountUtil
         {
             // 获取全部用户
             Connection con = SQLUtil.getConnection();
-            PreparedStatement findAllUsers = con.prepareStatement("select * from users");
+            PreparedStatement findAllUsers = con.prepareStatement("select * from user");
             try (ResultSet usersFound = findAllUsers.executeQuery())
             {
                 while (usersFound.next())
                 {
+                    String id = usersFound.getString("u_id");
                     String username = usersFound.getString("username");
                     String password = usersFound.getString("password");
-                    String type = usersFound.getString("type");
-                    System.out.println(type);
-                    User user = User.getInstance(username, password, type);
-                    users.add(user);
+                    String name = usersFound.getString("name");
+                    String type = usersFound.getString("post");
+                    String area = usersFound.getString("area");
+                    User user = User.getInstance(id, username, password, name, area, type);
+                    if (user != null)
+                    {
+                        users.add(user);
+                    }
+                    else
+                    {
+                        System.out.println(id);
+                    }
                 }
             }
-    
+            
             con.close();
         }
         catch (Exception e)
         {
-            handleExceptions(e);
+            SQLUtil.handleExceptions(e);
         }
         return users;
     }
@@ -106,16 +112,19 @@ public class AccountUtil
         {
             // 添加新用户
             Connection con = SQLUtil.getConnection();
-            PreparedStatement addNewUser = con.prepareStatement("insert into users values (?,?,?)");
-            addNewUser.setString(1, user.getUsername());
-            addNewUser.setString(2, user.getPassword());
-            addNewUser.setString(3, user.getType());
+            PreparedStatement addNewUser = con.prepareStatement("insert into user values (?,?,?,?,?,?)");
+            addNewUser.setString(1, user.getId());
+            addNewUser.setString(2, user.getUsername());
+            addNewUser.setString(3, user.getPassword());
+            addNewUser.setString(4, user.getName());
+            addNewUser.setString(5, user.getType());
+            addNewUser.setString(6, user.getArea());
             addNewUser.executeUpdate();
             con.close();
         }
         catch (Exception e)
         {
-            handleExceptions(e);
+            SQLUtil.handleExceptions(e);
         }
     }
     
@@ -125,16 +134,19 @@ public class AccountUtil
         {
             // 修改用户信息
             Connection con = SQLUtil.getConnection();
-            PreparedStatement reviseUser = con.prepareStatement("update users set password=?, type=? where username=?");
+            PreparedStatement reviseUser = con.prepareStatement("update user set password=?, name=?, " +
+                    "post=?, area=? where username=?");
             reviseUser.setString(1, user.getPassword());
-            reviseUser.setString(2, user.getType());
-            reviseUser.setString(3, user.getUsername());
+            reviseUser.setString(2, user.getName());
+            reviseUser.setString(3, user.getType());
+            reviseUser.setString(4, user.getArea());
+            reviseUser.setString(5, user.getUsername());
             reviseUser.executeUpdate();
             con.close();
         }
         catch (Exception e)
         {
-            handleExceptions(e);
+            SQLUtil.handleExceptions(e);
         }
     }
     
@@ -144,14 +156,14 @@ public class AccountUtil
         {
             // 删除用户
             Connection con = SQLUtil.getConnection();
-            PreparedStatement deleteUser = con.prepareStatement("delete from users where username=?");
+            PreparedStatement deleteUser = con.prepareStatement("delete from user where username=?");
             deleteUser.setString(1, user.getUsername());
             deleteUser.executeUpdate();
             con.close();
         }
         catch (Exception e)
         {
-            handleExceptions(e);
+            SQLUtil.handleExceptions(e);
         }
     }
 }

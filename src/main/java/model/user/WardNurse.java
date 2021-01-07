@@ -4,22 +4,24 @@
 
 package model.user;
 
-public class WardNurse extends Nurse
+public class WardNurse extends User
 {
-    public WardNurse(String username, String password)
+    public static final String TYPE = "病房护士";
+    
+    WardNurse(String id, String username, String password, String name, String area)
     {
-        super(username, password);
+        super(id, username, password, name, area);
     }
     
     @Override
     public String getType()
     {
-        return "WardNurse";
+        return TYPE;
     }
     
     @Override
     public void routine()
     {
-        super.routine();
+    
     }
 }

@@ -6,15 +6,17 @@ package model.user;
 
 public class Doctor extends User
 {
-    public Doctor(String username, String password)
+    public static final String TYPE = "主治医生";
+    
+    Doctor(String id, String username, String password, String name, String area)
     {
-        super(username, password);
+        super(id, username, password, name, area);
     }
     
     @Override
     public String getType()
     {
-        return "Doctor";
+        return TYPE;
     }
     
     @Override

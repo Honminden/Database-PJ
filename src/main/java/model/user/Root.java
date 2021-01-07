@@ -4,7 +4,9 @@
 
 package model.user;
 
+import restriction.user.UserRestriction;
 import service.account.AccountUtil;
+import service.id.IDGenerator;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -16,7 +18,7 @@ public class Root extends User
     
     public Root()
     {
-        super(USERNAME, PASSWORD);
+        super(null, USERNAME, PASSWORD, null, null);
     }
     
     @Override
@@ -81,7 +83,8 @@ public class Root extends User
         System.out.println("##【root账户权限操作】----------");
         for (User user: users)
         {
-            System.out.println(String.format("##【root账户权限操作】用户名：%s, 类型：%s", user.getUsername(), user.getType()));
+            System.out.println(String.format("##【root账户权限操作】用户名：%s, 密码：%s，姓名：%s，类型：%s，区域：%s",
+                    user.getUsername(), user.getPassword(), user.getName(), user.getType(), user.getArea()));
         }
         System.out.println("##【root账户权限操作】----------");
     }
@@ -90,7 +93,7 @@ public class Root extends User
     {
         while(true)
         {
-            System.out.println("##【root账户权限操作】请输入需要添加的新用户名,或输入“cancel”取消：");
+            System.out.println("##【root账户权限操作】请输入需要添加的新用户名，或输入“cancel”取消：");
             System.out.print(">");
             Scanner scanner = new Scanner(System.in);
             String username = scanner.nextLine();
@@ -111,46 +114,37 @@ public class Root extends User
                 User user;
                 
                 // 输入密码
-                System.out.println("##【root账户权限操作】请输入新用户的密码,或输入“cancel”取消：");
+                System.out.println("##【root账户权限操作】请输入新用户的密码，或输入“cancel”取消：");
                 System.out.print(">");
                 String password = scanner.nextLine();
                 if (password.equals("cancel"))
                 {
                     return;
                 }
+    
+                // 输入姓名
+                System.out.println("##【root账户权限操作】请输入新用户的姓名，或输入“cancel”取消：");
+                System.out.print(">");
+                String name = scanner.nextLine();
+                if (name.equals("cancel"))
+                {
+                    return;
+                }
                 
                 // 输入类型
+                String type;
                 while (true)
                 {
-                    System.out.println("##【root账户权限操作】请选择新用户的医护人员类型,或输入“cancel”取消：");
-                    System.out.println("##【root账户权限操作】“Doctor”：主治医生");
-                    System.out.println("##【root账户权限操作】“ChiefNurse”：护士长");
-                    System.out.println("##【root账户权限操作】“EmergencyNurse”：急诊护士");
-                    System.out.println("##【root账户权限操作】“WardNurse”：病房护士");
+                    System.out.println("##【root账户权限操作】请选择新用户的医护人员类型（主治医生/护士长/病房护士/急诊护士），" +
+                            "或输入“cancel”取消：");
                     System.out.print(">");
-                    String type = scanner.nextLine();
+                    type = scanner.nextLine();
                     if (type.equals("cancel"))
                     {
                         return;
                     }
-                    else if (type.equals("Doctor"))
+                    else if (User.isValidType(type))
                     {
-                        user = new Doctor(username, password);
-                        break;
-                    }
-                    else if (type.equals("ChiefNurse"))
-                    {
-                        user = new ChiefNurse(username, password);
-                        break;
-                    }
-                    else if (type.equals("EmergencyNurse"))
-                    {
-                        user = new EmergencyNurse(username, password);
-                        break;
-                    }
-                    else if (type.equals("WardNurse"))
-                    {
-                        user = new WardNurse(username, password);
                         break;
                     }
                     else
@@ -159,9 +153,49 @@ public class Root extends User
                     }
                 }
     
-                // 向数据库中加入新用户
-                AccountUtil.addUser(user);
-                System.out.println(String.format("##【root账户权限操作】添加新用户%s成功。", user.getUsername()));
+                // 如果不是急诊护士，则输入区域
+                String area = null;
+                if (!type.equals(EmergencyNurse.TYPE))
+                {
+                    while (true)
+                    {
+                        System.out.println("##【root账户权限操作】请选择新用户的治疗区域（轻症区域/重症区域/危重症区域），" +
+                                "或输入“cancel”取消：");
+                        System.out.print(">");
+                        area = scanner.nextLine();
+                        if (area.equals("cancel"))
+                        {
+                            return;
+                        }
+                        else if (area.equals("轻症区域") || area.equals("重症区域") || area.equals("危重症区域"))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            System.out.println("##【root账户权限操作】无此治疗区域，请重试。");
+                        }
+                    }
+                }
+                
+                if (UserRestriction.checkUserAreaRestriction(type, area))
+                {
+                    System.out.println(String.format("##【root账户权限操作】当前区域已有%s，请重试", type));
+                    continue;
+                }
+                
+                user = User.getInstance(IDGenerator.generateID(), username, password, name, area, type);
+    
+                if (user != null)
+                {
+                    // 向数据库中加入新用户
+                    AccountUtil.addUser(user);
+                    System.out.println(String.format("##【root账户权限操作】添加新用户%s成功。", user.getUsername()));
+                }
+                else
+                {
+                    System.out.println("##【root账户权限操作】添加新用户失败，请重试。");
+                }
             }
         }
     }
@@ -187,7 +221,7 @@ public class Root extends User
                 User user;
     
                 // 输入密码
-                System.out.println("##【root账户权限操作】请输入新的密码,或输入“cancel”取消：");
+                System.out.println("##【root账户权限操作】请输入用户的新密码，或输入“cancel”取消：");
                 System.out.print(">");
                 String password = scanner.nextLine();
                 if (password.equals("cancel"))
@@ -195,38 +229,29 @@ public class Root extends User
                     return;
                 }
     
+                // 输入姓名
+                System.out.println("##【root账户权限操作】请输入用户的新姓名，或输入“cancel”取消：");
+                System.out.print(">");
+                String name = scanner.nextLine();
+                if (name.equals("cancel"))
+                {
+                    return;
+                }
+    
                 // 输入类型
+                String type;
                 while (true)
                 {
-                    System.out.println("##【root账户权限操作】请选择新的医护人员类型,或输入“cancel”取消：");
-                    System.out.println("##【root账户权限操作】“Doctor”：主治医生");
-                    System.out.println("##【root账户权限操作】“ChiefNurse”：护士长");
-                    System.out.println("##【root账户权限操作】“EmergencyNurse”：急诊护士");
-                    System.out.println("##【root账户权限操作】“WardNurse”：病房护士");
+                    System.out.println("##【root账户权限操作】请选择用户的新医护人员类型（主治医生/护士长/病房护士/急诊护士），" +
+                            "或输入“cancel”取消：");
                     System.out.print(">");
-                    String type = scanner.nextLine();
+                    type = scanner.nextLine();
                     if (type.equals("cancel"))
                     {
                         return;
                     }
-                    else if (type.equals("Doctor"))
+                    else if (User.isValidType(type))
                     {
-                        user = new Doctor(username, password);
-                        break;
-                    }
-                    else if (type.equals("ChiefNurse"))
-                    {
-                        user = new ChiefNurse(username, password);
-                        break;
-                    }
-                    else if (type.equals("EmergencyNurse"))
-                    {
-                        user = new EmergencyNurse(username, password);
-                        break;
-                    }
-                    else if (type.equals("WardNurse"))
-                    {
-                        user = new WardNurse(username, password);
                         break;
                     }
                     else
@@ -235,9 +260,49 @@ public class Root extends User
                     }
                 }
     
-                //更新数据库中用户信息
-                AccountUtil.updateUser(user);
-                System.out.println(String.format("##【root账户权限操作】修改用户%s成功。", user.getUsername()));
+                // 如果不是急诊护士，则输入区域
+                String area = null;
+                if (!type.equals(EmergencyNurse.TYPE))
+                {
+                    while (true)
+                    {
+                        System.out.println("##【root账户权限操作】请选择用户的新治疗区域（轻症区域/重症区域/危重症区域），" +
+                                "或输入“cancel”取消：");
+                        System.out.print(">");
+                        area = scanner.nextLine();
+                        if (area.equals("cancel"))
+                        {
+                            return;
+                        }
+                        else if (area.equals("轻症区域") || area.equals("重症区域") || area.equals("危重症区域"))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            System.out.println("##【root账户权限操作】无此治疗区域，请重试。");
+                        }
+                    }
+                }
+    
+                if (UserRestriction.checkUserAreaRestriction(type, area))
+                {
+                    System.out.println(String.format("##【root账户权限操作】当前区域已有%s，请重试", type));
+                    continue;
+                }
+    
+                user = User.getInstance(IDGenerator.generateID(), username, password, name, area, type);
+    
+                if (user != null)
+                {
+                    //更新数据库中用户信息
+                    AccountUtil.updateUser(user);
+                    System.out.println(String.format("##【root账户权限操作】修改用户%s成功。", user.getUsername()));
+                }
+                else
+                {
+                    System.out.println("##【root账户权限操作】修改用户失败，请重试。");
+                }
             }
             else
             {

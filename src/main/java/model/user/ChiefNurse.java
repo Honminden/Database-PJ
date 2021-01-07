@@ -6,16 +6,17 @@ package model.user;
 
 public class ChiefNurse extends User
 {
+    public static final String TYPE = "护士长";
     
-    public ChiefNurse(String username, String password)
+    ChiefNurse(String id, String username, String password, String name, String area)
     {
-        super(username, password);
+        super(id, username, password, name, area);
     }
     
     @Override
     public String getType()
     {
-        return "ChiefNurse";
+        return TYPE;
     }
     
     @Override

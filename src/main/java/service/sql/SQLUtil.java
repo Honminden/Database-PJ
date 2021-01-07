@@ -25,4 +25,11 @@ public class SQLUtil
         }
         return con;
     }
+    
+    public static void handleExceptions(Exception e)
+    {
+        System.out.println("##【SQL错误】请检查数据库并重新登录系统。");
+        e.printStackTrace();
+        System.exit(-1);
+    }
 }
