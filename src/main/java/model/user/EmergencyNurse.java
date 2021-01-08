@@ -73,7 +73,7 @@ public class EmergencyNurse extends User
     {
         while(true)
         {
-            //筛选条件：是否可以出院，是否待转移，所在区域，生命状态，病情评级
+            // 筛选条件：是否可以出院，是否待转移，所在区域，生命状态，病情评级
             Scanner scanner = new Scanner(System.in);
             System.out.println("##请输入筛选条件，或输入“cancel”取消：");
             System.out.println("##（是否可以出院(全部/是/否) 是否待转移(全部/是/否) " +
@@ -142,56 +142,10 @@ public class EmergencyNurse extends User
     
             // 查询特定患者信息
             ArrayList<Patient> patients = PatientUtil.getPatients(optionCanLeave, optionShouldTransfer,
-                    optionArea, "全部", optionLifeState, optionIllState);
-            System.out.println("##查询患者信息如下");
-            System.out.println("##----------");
-            for (Patient patient: patients)
-            {
-                System.out.println(String.format("##患者ID：%s, 姓名：%s, 身份证号：%s, 家庭住址：%s, 生命状态：%s",
-                        patient.getId(), patient.getName(),
-                        patient.getResidentID(), patient.getAddress(), patient.getLifeState()));
-                if (patient.getLifeState().equals(Patient.LIFE_ILL))
-                {
-                    String canLeave = (patient.isCanLeave()) ? "是" : "否";
-                    String shouldTransfer = (patient.shouldTransfer()) ? "是" : "否";
-                    System.out.println(String.format("##......病情评级：%s, 是否可以出院：%s, 是否待转移：%s",
-                            patient.getIllState(), canLeave, shouldTransfer));
-                    if (patient.getArea() == null)
-                    {
-                        System.out.println("##......所在区域：隔离区域");
-                    }
-                    else
-                    {
-                        System.out.println(String.format("##......所在区域：%s, 房间号：%s, 床号：%s, 护士号：%s, 护士名：%s",
-                                patient.getArea(), patient.getResidentID(), patient.getbID(),
-                                patient.getuID(), patient.getuName()));
-                    }
-                }
-            }
-            System.out.println("##----------");
+                    optionArea, "全部", "全部", optionLifeState, optionIllState);
             
-            // 列出可以出院和待转移人数
-            int countCanLeave = 0;
-            int countShouldTransfer = 0;
-            
-            for (Patient patient: patients)
-            {
-                if (patient.isCanLeave())
-                {
-                    countCanLeave++;
-                }
-                if (patient.shouldTransfer())
-                {
-                    countShouldTransfer++;
-                }
-            }
-            
-            if (countCanLeave > 0 || countShouldTransfer > 0)
-            {
-                System.out.println(String.format("##【提醒】当前有%d名患者可以出院，有%d名患者等待转移",
-                        countCanLeave, countShouldTransfer));
-                System.out.println("##----------");
-            }
+            PatientUtil.printPatients(patients);
+            break;
         }
     }
     
