@@ -55,12 +55,32 @@ insert into user values('uc03', 'chief3', '111', '徐三', '护士长', '危重�
 insert into user values('ue01', 'emergency1', '111', '华一', '急诊护士', null);
 
 # 创建9个病房护士
-insert into user values('uw01', 'ward1', '111', '许一', '病房护士', null);
-insert into user values('uw02', 'ward2', '111', '付二', '病房护士', null);
-insert into user values('uw03', 'ward1', '111', '梅三', '病房护士', null);
-insert into user values('uw04', 'ward1', '111', '曹四', '病房护士', null);
-insert into user values('uw05', 'ward1', '111', '冯五', '病房护士', null);
-insert into user values('uw06', 'ward1', '111', '韩六', '病房护士', null);
-insert into user values('uw07', 'ward1', '111', '朱七', '病房护士', null);
-insert into user values('uw08', 'ward1', '111', '熊八', '病房护士', null);
-insert into user values('uw09', 'ward1', '111', '余九', '病房护士', null);
+insert into user values('uw01', 'ward1', '111', '许一', '病房护士', '轻症区域');
+insert into user values('uw02', 'ward2', '111', '付二', '病房护士', '轻症区域');
+insert into user values('uw03', 'ward3', '111', '梅三', '病房护士', '轻症区域');
+insert into user values('uw04', 'ward4', '111', '曹四', '病房护士', '轻症区域');
+insert into user values('uw05', 'ward5', '111', '冯五', '病房护士', '轻症区域');
+insert into user values('uw06', 'ward6', '111', '韩六', '病房护士', '轻症区域');
+insert into user values('uw07', 'ward7', '111', '朱七', '病房护士', '重症区域');
+insert into user values('uw08', 'ward8', '111', '熊八', '病房护士', '重症区域');
+insert into user values('uw09', 'ward9', '111', '余九', '病房护士', '危重症区域');
+
+# 生成患者
+
+# 创建3个轻症患者
+insert into patient values('pm01', '刘一', '310', '南京路', '在院治疗', '轻症');
+insert into patient values('pm02', '武二', '310', '南京路', '在院治疗', '轻症');
+insert into patient values('pm03', '郑三', '310', '南京路', '在院治疗', '轻症');
+
+# 创建1个重症患者
+insert into patient values('ps01', '魏一', '310', '南京路', '在院治疗', '重症');
+
+# 分配病床和护士
+insert into bed_for_patient values('b0101', 'pm01');
+insert into nurse_for_patient values('uw01', 'pm01');
+
+insert into bed_for_patient values('b0102', 'pm02');
+insert into nurse_for_patient values('uw02', 'pm02');
+
+insert into bed_for_patient values('b0301', 'ps01');
+insert into nurse_for_patient values('uw01', 'ps01');

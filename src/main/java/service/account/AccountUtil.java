@@ -67,6 +67,40 @@ public class AccountUtil
         return null;
     }
     
+    public static User getUserById(String id)
+    {
+        try
+        {
+            // 查找用户名
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement findUserByUsername = con.prepareStatement("select * from user where u_id=?");
+            findUserByUsername.setString(1, id);
+            try (ResultSet usersFound = findUserByUsername.executeQuery())
+            {
+                if (usersFound.next())
+                {
+                    String username = usersFound.getString("username");
+                    String password = usersFound.getString("password");
+                    String name = usersFound.getString("name");
+                    String type = usersFound.getString("post");
+                    String area = usersFound.getString("area");
+                    con.close();
+                    return User.getInstance(id, username, password, name, area, type);
+                }
+                else
+                {
+                    con.close();
+                    return null;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+        return null;
+    }
+    
     public static ArrayList<User> getAllUsers()
     {
         ArrayList<User> users = new ArrayList<>();
@@ -89,10 +123,6 @@ public class AccountUtil
                     if (user != null)
                     {
                         users.add(user);
-                    }
-                    else
-                    {
-                        System.out.println(id);
                     }
                 }
             }
