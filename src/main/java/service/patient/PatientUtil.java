@@ -26,11 +26,13 @@ public class PatientUtil
         // 列出患者信息
         System.out.println("##查询患者信息如下");
         System.out.println("##----------");
+        int count = 1;
         for (Patient patient: patients)
         {
-            System.out.println(String.format("##患者ID：%s, 姓名：%s, 身份证号：%s, 家庭住址：%s, 生命状态：%s",
-                    patient.getId(), patient.getName(),
+            System.out.println(String.format("##[%d]患者ID：%s, 姓名：%s, 身份证号：%s, 家庭住址：%s, 生命状态：%s",
+                    count, patient.getId(), patient.getName(),
                     patient.getResidentID(), patient.getAddress(), patient.getLifeState()));
+            count++;
             if (patient.getLifeState().equals(Patient.LIFE_ILL))
             {
                 String canLeave = (patient.isCanLeave()) ? "是" : "否";
@@ -114,7 +116,7 @@ public class PatientUtil
                     String result1 = patientsFound.getString("result1");
                     String result2 = patientsFound.getString("result2");
                     
-                    boolean canLeave = Patient.checkCanLeave(illState, temperature, result1, result2);
+                    boolean canLeave = Patient.checkCanLeave(lifeState, illState, temperature, result1, result2);
                     
                     Patient patient = new Patient(id, name, residentID, address, lifeState, illState,
                             canLeave, bID, rID, area, uID, uName);
@@ -129,6 +131,61 @@ public class PatientUtil
             SQLUtil.handleExceptions(e);
         }
         return patients;
+    }
+    
+    public static Patient getPatientByID(String id)
+    {
+        try
+        {
+            // 获取指定患者
+            Connection con = SQLUtil.getConnection();
+            String sql = "select * from (select patient.p_ID as p_ID, patient.name as name, patient.resident_ID as resident_ID, patient.address as address, \n" +
+                    "patient.life_state as life_state, patient.ill_state as ill_state, \n" +
+                    "user.u_ID as u_ID, user.name as u_name, bed.b_ID as b_ID, room.r_ID as r_ID, room.area as area, \n" +
+                    "(select max(temp.temperature) as temperature\n" +
+                    "from (select * from daily_state where p_ID=patient.p_ID order by date desc limit 3) as temp) as temperature,\n" +
+                    "(select result from test_sheet where p_ID=patient.p_ID order by date desc limit 1) as result1,\n" +
+                    "(select result from test_sheet where p_ID=patient.p_ID order by date desc limit 1, 1) as result2\n" +
+                    "\tfrom patient left join (nurse_for_patient natural join user) \n" +
+                    "    on patient.p_ID = nurse_for_patient.p_ID \n" +
+                    "    left join (bed_for_patient natural join bed natural join room_in_bed natural join room) \n" +
+                    "    on patient.p_ID = bed_for_patient.p_ID) as patient_info where p_ID=?";
+            PreparedStatement findPatientByID = con.prepareStatement(sql);
+            findPatientByID.setString(1, id);
+            try (ResultSet patientFound = findPatientByID.executeQuery())
+            {
+                if (patientFound.next())
+                {
+                    String name = patientFound.getString("name");
+                    String residentID = patientFound.getString("resident_ID");
+                    String address = patientFound.getString("address");
+                    String lifeState = patientFound.getString("life_state");
+                    String illState = patientFound.getString("ill_state");
+                    String uID = patientFound.getString("u_ID");
+                    String uName = patientFound.getString("u_name");
+                    String bID = patientFound.getString("b_ID");
+                    String rID = patientFound.getString("r_ID");
+                    String area = patientFound.getString("area");
+                    String temperature = patientFound.getString("temperature");
+                    String result1 = patientFound.getString("result1");
+                    String result2 = patientFound.getString("result2");
+            
+                    boolean canLeave = Patient.checkCanLeave(lifeState, illState, temperature, result1, result2);
+            
+                    Patient patient = new Patient(id, name, residentID, address, lifeState, illState,
+                            canLeave, bID, rID, area, uID, uName);
+                    return patient;
+                }
+            }
+    
+            con.close();
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+    
+        return null;
     }
     
     public static ArrayList<Patient> getPatients(String optionCanLeave, String optionShouldTransfer, String optionArea,
@@ -168,8 +225,8 @@ public class PatientUtil
             // 添加筛选项
             if (!canLeaveIsAll)
             {
-                // 可以出院的标准是：病情评级为轻症，连续3天体温低于37.3摄氏度，连续两次核酸检测结果为阴性
-                String restrictCanLeave = "(ill_state='轻症' and temperature < 37.3 and " +
+                // 可以出院的标准是：在院治疗，病情评级为轻症，连续3天体温低于37.3摄氏度，连续两次核酸检测结果为阴性
+                String restrictCanLeave = "(life_state='在院治疗' and ill_state='轻症' and temperature < 37.3 and " +
                         "result1='阴性' and result2='阴性')";
                 if (optionCanLeave.equals("是"))
                 {
@@ -183,11 +240,11 @@ public class PatientUtil
             
             if (!shouldTransferIsAll)
             {
-                //待转移的标准是：在隔离区（所在区域为null），或所在区域与病情评级不符合
-                String restrictShouldTransfer = "(area is null or not" +
+                //待转移的标准是：在院治疗，在隔离区（所在区域为null），或所在区域与病情评级不符合
+                String restrictShouldTransfer = "(life_state='在院治疗' and (area is null or not" +
                         "((ill_state='轻症' and area='轻症区域') or " +
                         "(ill_state='重症' and area='重症区域') or " +
-                        "(ill_state='危重症' and area='危重症区域')))";
+                        "(ill_state='危重症' and area='危重症区域'))))";
                 if (optionShouldTransfer.equals("是"))
                 {
                     sql += " and " + restrictShouldTransfer + " is true";
@@ -264,7 +321,7 @@ public class PatientUtil
                     String result1 = patientsFound.getString("result1");
                     String result2 = patientsFound.getString("result2");
                 
-                    boolean canLeave = Patient.checkCanLeave(illState, temperature, result1, result2);
+                    boolean canLeave = Patient.checkCanLeave(lifeState, illState, temperature, result1, result2);
                 
                     Patient patient = new Patient(id, name, residentID, address, lifeState, illState,
                             canLeave, bID, rID, area, uID, uName);
@@ -587,6 +644,11 @@ public class PatientUtil
                 String bID = getFreeBedID(area);
                 if (uID != null && bID != null)
                 {
+                    // 清除原有的从属关系
+                    deleteResponsibility(patient.getId());
+                    deleteOwnership(patient.getId());
+                    
+                    // 新增从属关系
                     addResponsibility(patient.getId(), uID);
                     addOwnership(patient.getId(), bID);
                 }
@@ -609,6 +671,26 @@ public class PatientUtil
             addNewPatient.setString(5, patient.getLifeState());
             addNewPatient.setString(6, patient.getIllState());
             addNewPatient.executeUpdate();
+            con.close();
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+    }
+    
+    // 修改患者病情信息
+    public static void revisePatientState(String pID, String lifeState, String illState)
+    {
+        try
+        {
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement updatePatientState = con.prepareStatement("update patient " +
+                    "set life_state=?, ill_state=? where p_ID=?");
+            updatePatientState.setString(1, lifeState);
+            updatePatientState.setString(2, illState);
+            updatePatientState.setString(3, pID);
+            updatePatientState.executeUpdate();
             con.close();
         }
         catch (Exception e)

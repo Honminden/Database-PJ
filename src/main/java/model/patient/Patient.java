@@ -107,10 +107,11 @@ public class Patient
     
     public boolean shouldTransfer()
     {
-        //待转移的标准是：在隔离区（所在区域为null），或所在区域与病情评级不符合
-        return (area == null) || !((illState.equals(ILL_MODERATE) && area.equals("轻症区域")) ||
+        //待转移的标准是：在院治疗，在隔离区（所在区域为null），或所在区域与病情评级不符合
+        return ((lifeState.equals(LIFE_ILL)) &&
+                ((area == null) || !((illState.equals(ILL_MODERATE) && area.equals("轻症区域")) ||
                 (illState.equals(ILL_SERIOUS) && area.equals("重症区域")) ||
-                (illState.equals(ILL_SEVERE) && area.equals("危重症区域")));
+                (illState.equals(ILL_SEVERE) && area.equals("危重症区域")))));
     }
     
     public static boolean isValidLifeState(String lifeState)
@@ -123,9 +124,10 @@ public class Patient
         return (illState.equals(ILL_MODERATE) || illState.equals(ILL_SERIOUS) || illState.equals(ILL_SEVERE));
     }
     
-    public static boolean checkCanLeave(String illState, String temperature, String result1, String result2)
+    public static boolean checkCanLeave(String lifeState, String illState, String temperature,
+                                        String result1, String result2)
     {
-        // 可以出院的标准是：病情评级为轻症，连续3天体温低于37.3摄氏度，连续两次核酸检测结果为阴性
+        // 可以出院的标准是：在院治疗，病情评级为轻症，连续3天体温低于37.3摄氏度，连续两次核酸检测结果为阴性
         if (temperature == null || result1 == null || result2==null)
         {
             return false;
@@ -134,7 +136,8 @@ public class Patient
         {
             final double UNSAFE_TEMPERATURE = 37.3;
             final String NEGATIVE = "阴性";
-            return (illState.equals(ILL_MODERATE) && (Double.parseDouble(temperature) < UNSAFE_TEMPERATURE)
+            return (lifeState.equals(LIFE_ILL) &&
+                    illState.equals(ILL_MODERATE) && (Double.parseDouble(temperature) < UNSAFE_TEMPERATURE)
                     && result1.equals(NEGATIVE) && result2.equals(NEGATIVE));
         }
     }

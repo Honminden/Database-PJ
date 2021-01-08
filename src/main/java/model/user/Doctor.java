@@ -263,7 +263,7 @@ public class Doctor extends User
             }
             else if (!Patient.isValidIllState(illState))
             {
-                System.out.println("##无此生命状态选项，请重试。");
+                System.out.println("##无此病情评级选项，请重试。");
             }
             else
             {
@@ -279,6 +279,94 @@ public class Doctor extends User
     
     private void revise()
     {
+        // 修改病人的病情评级和生命状态
     
+        Scanner scanner = new Scanner(System.in);
+    
+        String pID;
+        Patient patient;
+        while (true)
+        {
+            System.out.println("##请输入修改信息的患者ID，或输入“cancel”取消：");
+            System.out.print(">");
+            pID = scanner.nextLine();
+            if (pID.equals("cancel"))
+            {
+                return;
+            }
+            else if (!PatientUtil.checkArea(getArea(), pID))
+            {
+                System.out.println("##该患者并不属于您管理，请重试。");
+            }
+            else
+            {
+                patient = PatientUtil.getPatientByID(pID);
+                if (patient == null)
+                {
+                    System.out.println("##无法找到该患者，请重试。");
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+    
+        String lifeState;
+        while (true)
+        {
+            System.out.println("##请输入患者的生命状态(康复出院/在院治疗/病亡)，或输入“cancel”取消：");
+            System.out.print(">");
+            lifeState = scanner.nextLine();
+            if (lifeState.equals("cancel"))
+            {
+                return;
+            }
+            else if (!Patient.isValidLifeState(lifeState))
+            {
+                System.out.println("##无此检测结果选项，请重试。");
+            }
+            else if (lifeState.equals(Patient.LIFE_RECOVERED) && !patient.isCanLeave())
+            {
+                System.out.println("##病人未满足条件，不能允许出院，请重试。");
+            }
+            else
+            {
+                break;
+            }
+        }
+    
+        String illState;
+        while (true)
+        {
+            System.out.println("##请输入患者的病情评级(轻症/重症/危重症)，或输入“cancel”取消：");
+            System.out.print(">");
+            illState = scanner.nextLine();
+            if (illState.equals("cancel"))
+            {
+                return;
+            }
+            else if (!Patient.isValidIllState(illState))
+            {
+                System.out.println("##无此病情评级选项，请重试。");
+            }
+            else
+            {
+                break;
+            }
+        }
+        
+        PatientUtil.revisePatientState(pID, lifeState, illState);
+        
+        if (lifeState.equals(Patient.LIFE_RECOVERED) || lifeState.equals(Patient.LIFE_DEAD))
+        {
+            // 若患者出院或病亡，则删除患者与护士和病床的从属关系
+            PatientUtil.deleteOwnership(pID);
+            PatientUtil.deleteResponsibility(pID);
+        }
+    
+        PatientUtil.transferArea(); // 病情评级可能改变，自动尝试转移
+        
+        System.out.println("##修改患者信息成功。");
     }
 }
