@@ -5,6 +5,7 @@
 package model.user;
 
 import model.patient.Patient;
+import service.id.IDGenerator;
 import service.patient.PatientUtil;
 
 import java.util.ArrayList;
@@ -151,84 +152,67 @@ public class EmergencyNurse extends User
     
     private void add()
     {
-        /*
-        while(true)
+        Scanner scanner = new Scanner(System.in);
+    
+        // 输入姓名
+        System.out.println("##请输入患者的姓名，或输入“cancel”取消：");
+        System.out.print(">");
+        String name = scanner.nextLine();
+        if (name.equals("cancel"))
         {
-            Scanner scanner = new Scanner(System.in);
-            Patient patient;
-            
-            // 输入姓名
-            System.out.println("##请输入患者的姓名，或输入“cancel”取消：");
+            return;
+        }
+    
+        // 输入身份证号
+        System.out.println("##请输入患者的身份证号，或输入“cancel”取消：");
+        System.out.print(">");
+        String residentID = scanner.nextLine();
+        if (residentID.equals("cancel"))
+        {
+            return;
+        }
+    
+        // 输入家庭住址
+        System.out.println("##请输入患者的家庭住址，或输入“cancel”取消：");
+        System.out.print(">");
+        String address = scanner.nextLine();
+        if (address.equals("cancel"))
+        {
+            return;
+        }
+    
+        // 输入病情评级
+        String illState;
+        while (true)
+        {
+            System.out.println("##请选择患者的病情评级（轻症/重症/危重症），或输入“cancel”取消：");
             System.out.print(">");
-            String name = scanner.nextLine();
-            if (name.equals("cancel"))
+            illState = scanner.nextLine();
+            if (illState.equals("cancel"))
             {
                 return;
             }
-    
-            // 输入身份证号
-            System.out.println("##请输入患者的身份证号，或输入“cancel”取消：");
-            System.out.print(">");
-            String residentID = scanner.nextLine();
-            if (residentID.equals("cancel"))
+            else if (Patient.isValidIllState(illState))
             {
-                return;
-            }
-    
-            // 输入家庭住址
-            System.out.println("##请输入患者的家庭住址，或输入“cancel”取消：");
-            System.out.print(">");
-            String address = scanner.nextLine();
-            if (address.equals("cancel"))
-            {
-                return;
-            }
-            
-            // 输入病情评级
-            String illState;
-            while (true)
-            {
-                System.out.println("##请选择患者的病情评级（轻症/重症/危重症），或输入“cancel”取消：");
-                System.out.print(">");
-                illState = scanner.nextLine();
-                if (illState.equals("cancel"))
-                {
-                    return;
-                }
-                else if (Patient.isValidIllState(illState))
-                {
-                    break;
-                }
-                else
-                {
-                    System.out.println("##无此病情评级，请重试。");
-                }
-            }
-    
-            if (UserRestriction.checkUserAreaRestriction(type, area))
-            {
-                System.out.println(String.format("##【root账户权限操作】当前区域已有%s，请重试", type));
-                continue;
-            }
-    
-            user = User.getInstance(IDGenerator.generateID(), username, password, name, area, type);
-    
-            if (user != null)
-            {
-                // 向数据库中加入新用户
-                AccountUtil.addUser(user);
-                System.out.println(String.format("##【root账户权限操作】添加新用户%s成功。", user.getUsername()));
+                break;
             }
             else
             {
-                System.out.println("##【root账户权限操作】添加新用户失败，请重试。");
+                System.out.println("##无此病情评级，请重试。");
             }
         }
-        */
+    
+        Patient patient = new Patient(IDGenerator.generateID(), name, residentID, address,
+                Patient.LIFE_ILL, illState, false,
+                null, null, null, null, null);
+        PatientUtil.addPatient(patient);
+        PatientUtil.transferArea(); // 自动尝试转移
+        System.out.println("##添加患者信息成功。");
     }
     
     private void transfer()
     {
-    
+        PatientUtil.transferArea();
+        System.out.println("##已成功进行转移操作。");
     }
 }

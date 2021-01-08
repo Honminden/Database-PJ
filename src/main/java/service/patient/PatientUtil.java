@@ -7,6 +7,7 @@ package service.patient;
 import model.patient.DailyState;
 import model.patient.Patient;
 import model.patient.TestSheet;
+import model.user.User;
 import service.sql.SQLUtil;
 
 import java.math.BigDecimal;
@@ -15,6 +16,8 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class PatientUtil
 {
@@ -371,7 +374,7 @@ public class PatientUtil
     {
         try
         {
-            // 新增每日状态
+            // 新增核酸检测单
             Connection con = SQLUtil.getConnection();
             PreparedStatement addNewTestSheet = con.prepareStatement("insert into test_sheet " +
                     "values (?,?,?,?,?)");
@@ -381,6 +384,231 @@ public class PatientUtil
             addNewTestSheet.setString(4, testSheet.getResult());
             addNewTestSheet.setString(5, testSheet.getIllState());
             addNewTestSheet.executeUpdate();
+            con.close();
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+    }
+    
+    // 为患者找到空闲的病房护士号
+    public static String getFreeWardNurseID(String area)
+    {
+        try
+        {
+            TreeMap<String, Integer> uIDCountMap = new TreeMap<>();
+            // 获取当前区域全部病房护士
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement findWardNursesByArea = con.prepareStatement("select * from user " +
+                    "left join nurse_for_patient on user.u_ID=nurse_for_patient.u_ID " +
+                    "where user.post='病房护士' and user.area=?");
+            findWardNursesByArea.setString(1, area);
+            try (ResultSet wardNursesFound = findWardNursesByArea.executeQuery())
+            {
+                while (wardNursesFound.next())
+                {
+                    String id = wardNursesFound.getString("u_id");
+                    String pID = wardNursesFound.getString("p_ID");
+                    if (!uIDCountMap.containsKey(id))
+                    {
+                        uIDCountMap.put(id, 0);
+                    }
+                    if (pID != null)
+                    {
+                        int oldCount = uIDCountMap.get(id);
+                        uIDCountMap.put(id, oldCount + 1);
+                    }
+                }
+            }
+            
+            //轻症区域的一位病房护士最多照顾3位病人，重症区域的一位病房护士最多照顾2位病人，危重症区域的一位病房护士最多照顾1位病人
+            int maxResponsibility = 0;
+            if (area.equals("轻症区域"))
+            {
+                maxResponsibility = 3;
+            }
+            else if (area.equals("重症区域"))
+            {
+                maxResponsibility = 2;
+            }
+            else if (area.equals("危重症区域"))
+            {
+                maxResponsibility = 1;
+            }
+    
+            String freeUID = null;
+            for (Map.Entry<String, Integer> entry : uIDCountMap.entrySet())
+            {
+                if (entry.getValue() < maxResponsibility)
+                {
+                    freeUID = entry.getKey();
+                    break;
+                }
+            }
+        
+            con.close();
+            return freeUID;
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+        return null;
+    }
+    
+    // 为患者找到空闲的病床号
+    public static String getFreeBedID(String area)
+    {
+        try
+        {
+            TreeMap<String, Integer> uIDCountMap = new TreeMap<>();
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement findBedsByArea = con.prepareStatement("select * from " +
+                    "(bed natural join room_in_bed natural join room) " +
+                    "left join bed_for_patient on bed.b_ID=bed_for_patient.b_ID " +
+                    "where area=? and p_ID is null");
+            findBedsByArea.setString(1, area);
+            try (ResultSet bedsFound = findBedsByArea.executeQuery())
+            {
+                if (bedsFound.next())
+                {
+                    String id = bedsFound.getString("b_id");
+                    con.close();
+                    return id;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+        return null;
+    }
+    
+    // 添加患者与护士的从属关系
+    public static void addResponsibility(String pID, String uID)
+    {
+        try
+        {
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement addNewResponsibility = con.prepareStatement("insert into nurse_for_patient " +
+                    "values (?,?)");
+            addNewResponsibility.setString(1, uID);
+            addNewResponsibility.setString(2, pID);
+            addNewResponsibility.executeUpdate();
+            con.close();
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+    }
+    
+    // 添加患者与病床的从属关系
+    public static void addOwnership(String pID, String bID)
+    {
+        try
+        {
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement addNewOwnership = con.prepareStatement("insert into bed_for_patient " +
+                    "values (?,?)");
+            addNewOwnership.setString(1, bID);
+            addNewOwnership.setString(2, pID);
+            addNewOwnership.executeUpdate();
+            con.close();
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+    }
+    
+    // 删除患者与护士的从属关系
+    public static void deleteResponsibility(String pID)
+    {
+        try
+        {
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement removeResponsibility = con.prepareStatement("delete from nurse_for_patient " +
+                    "where p_ID=?");
+            removeResponsibility.setString(1, pID);
+            removeResponsibility.executeUpdate();
+            con.close();
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+    }
+    
+    // 删除患者与病床的从属关系
+    public static void deleteOwnership(String pID)
+    {
+        try
+        {
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement removeOwnership = con.prepareStatement("delete from bed_for_patient " +
+                    "where p_ID=?");
+            removeOwnership.setString(1, pID);
+            removeOwnership.executeUpdate();
+            con.close();
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+    }
+    
+    // 尝试将所有待转移的患者转移
+    public static void transferArea()
+    {
+        ArrayList<Patient> patients = getAllPatients();
+        for (Patient patient : patients)
+        {
+            if (patient.shouldTransfer())
+            {
+                // 尝试转移
+                String area = null;
+                if (patient.getIllState().equals(Patient.ILL_MODERATE))
+                {
+                    area = "轻症区域";
+                }
+                else if (patient.getIllState().equals(Patient.ILL_SERIOUS))
+                {
+                    area = "重症区域";
+                }
+                else if (patient.getIllState().equals(Patient.ILL_SEVERE))
+                {
+                    area = "危重症区域";
+                }
+                
+                String uID = getFreeWardNurseID(area);
+                String bID = getFreeBedID(area);
+                if (uID != null && bID != null)
+                {
+                    addResponsibility(patient.getId(), uID);
+                    addOwnership(patient.getId(), bID);
+                }
+            }
+        }
+    }
+    
+    // 添加新患者
+    public static void addPatient(Patient patient)
+    {
+        try
+        {
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement addNewPatient = con.prepareStatement("insert into patient " +
+                    "values (?,?,?,?,?,?)");
+            addNewPatient.setString(1, patient.getId());
+            addNewPatient.setString(2, patient.getName());
+            addNewPatient.setString(3, patient.getResidentID());
+            addNewPatient.setString(4, patient.getAddress());
+            addNewPatient.setString(5, patient.getLifeState());
+            addNewPatient.setString(6, patient.getIllState());
+            addNewPatient.executeUpdate();
             con.close();
         }
         catch (Exception e)
