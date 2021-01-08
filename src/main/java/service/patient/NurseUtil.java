@@ -21,7 +21,6 @@ public class NurseUtil
     {
         try
         {
-            // 查找用户名
             Connection con = SQLUtil.getConnection();
             PreparedStatement findChiefNurseByArea = con.prepareStatement("select * from user " +
                     "where post='护士长' and area=?");
@@ -57,12 +56,11 @@ public class NurseUtil
         ArrayList<User> users = new ArrayList<>();
         try
         {
-            // 获取全部用户
             Connection con = SQLUtil.getConnection();
-            PreparedStatement findChiefNurseByArea = con.prepareStatement("select * from user " +
+            PreparedStatement findWardNursesByArea = con.prepareStatement("select * from user " +
                     "where post='病房护士' and area=?");
-            findChiefNurseByArea.setString(1, area);
-            try (ResultSet wardNursesFound = findChiefNurseByArea.executeQuery())
+            findWardNursesByArea.setString(1, area);
+            try (ResultSet wardNursesFound = findWardNursesByArea.executeQuery())
             {
                 while (wardNursesFound.next())
                 {

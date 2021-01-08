@@ -61,7 +61,7 @@ create table daily_state(
     d_ID varchar(256) NOT NULL,
     p_ID varchar(256) NOT NULL,
     date date NOT NULL, # 登记日期
-    temperature decimal(2, 1) NOT NULL,
+    temperature decimal(3, 1) NOT NULL,
     symptom varchar(256) NOT NULL,
     result enum('阳性','阴性') NOT NULL, # 检测结果
     life_state enum('康复出院','在院治疗','病亡') NOT NULL, # 生命状态
@@ -77,6 +77,16 @@ create table test_sheet(
     ill_state enum('轻症','重症','危重症') NOT NULL, # 病情评级
     PRIMARY KEY(t_ID)
 );
+
+create unique index patient_index on patient(p_ID);
+
+create index daily_state_index on daily_state(d_ID,p_ID);
+
+create index test_index on test_sheet(t_ID, p_ID);
+
+create index nfp_index on nurse_for_patient(u_ID);
+
+create index bfp_index on bed_for_patient(b_ID);
 
 
 

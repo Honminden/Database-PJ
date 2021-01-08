@@ -83,4 +83,33 @@ insert into bed_for_patient values('b0102', 'pm02');
 insert into nurse_for_patient values('uw02', 'pm02');
 
 insert into bed_for_patient values('b0301', 'ps01');
-insert into nurse_for_patient values('uw01', 'ps01');
+insert into nurse_for_patient values('uw07', 'ps01');
+
+# 创建每天的信息登记
+insert into daily_state values('dm0101', 'pm01', date'2020-11-11', 37.4, '咳嗽', '阴性', '在院治疗');
+insert into daily_state values('dm0102', 'pm01', date'2020-11-12', 37.1, '咳嗽', '阴性', '在院治疗');
+insert into daily_state values('dm0103', 'pm01', date'2020-11-13', 37.0, '无症状', '阴性', '在院治疗');
+insert into daily_state values('dm0104', 'pm01', date'2020-11-14', 37.1, '无症状', '阴性', '在院治疗');
+
+insert into daily_state values('dm0201', 'pm02', date'2020-11-12', 37.1, '咳嗽', '阴性', '在院治疗');
+insert into daily_state values('dm0202', 'pm02', date'2020-11-13', 37.4, '无症状', '阴性', '在院治疗');
+insert into daily_state values('dm0203', 'pm02', date'2020-11-14', 37.2, '无症状', '阴性', '在院治疗');
+
+insert into daily_state values('dm0301', 'pm03', date'2020-11-14', 37.1, '无症状', '阴性', '在院治疗');
+
+insert into daily_state values('ds0101', 'ps01', date'2020-11-12', 37.9, '肺炎', '阳性', '在院治疗');
+insert into daily_state values('ds0102', 'ps01', date'2020-11-13', 37.8, '肺炎', '阳性', '在院治疗');
+insert into daily_state values('ds0103', 'ps01', date'2020-11-14', 37.9, '肺炎', '阳性', '在院治疗');
+
+# 创建核酸检测单
+insert into test_sheet values('tm0101', 'pm01', date'2020-11-12', '阴性', '轻症');
+insert into test_sheet values('tm0102', 'pm01', date'2020-11-14', '阴性', '轻症');
+
+insert into test_sheet values('tm0201', 'pm02', date'2020-11-12', '阴性', '轻症');
+insert into test_sheet values('tm0202', 'pm02', date'2020-11-14', '阴性', '轻症');
+
+insert into test_sheet values('tm0301', 'pm03', date'2020-11-14', '阴性', '轻症');
+
+insert into test_sheet values('ts0301', 'ps01', date'2020-11-12', '阳性', '重症');
+insert into test_sheet values('ts0302', 'ps01', date'2020-11-13', '阳性', '重症');
+insert into test_sheet values('ts0303', 'ps01', date'2020-11-14', '阳性', '重症');
