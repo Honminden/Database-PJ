@@ -102,7 +102,8 @@ public class ChiefNurse extends User
         System.out.println("##----------");
         for (User wardNurse: wardNurses)
         {
-            System.out.println(String.format("##ID：%s，姓名：%s", wardNurse.getId(), wardNurse.getName()));
+            System.out.println(String.format("##ID：%s，姓名：%s，用户名：%s", wardNurse.getId(),
+                    wardNurse.getName(), wardNurse.getUsername()));
         }
         System.out.println("##----------");
     }
@@ -299,7 +300,8 @@ public class ChiefNurse extends User
                 User user = AccountUtil.getUser(username);
                 if (user != null)
                 {
-                    if (user.getArea().equals(getArea()) && user.getType().equals(WardNurse.TYPE))
+                    if (user.getArea().equals(getArea()) && user.getType().equals(WardNurse.TYPE) &&
+                            !UserRestriction.checkWardNurseHasResponsibility(user.getId()))
                     {
                         // 删除数据库中用户信息
                         AccountUtil.removeUser(user);
@@ -307,7 +309,7 @@ public class ChiefNurse extends User
                     }
                     else
                     {
-                        System.out.println("##只能删除当前治疗区域的病房护士，请重试。");
+                        System.out.println("##只能删除当前治疗区域没有负责病人的病房护士，请重试。");
                     }
                 }
             }

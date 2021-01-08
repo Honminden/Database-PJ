@@ -6,7 +6,6 @@ package restriction.user;
 
 import model.user.ChiefNurse;
 import model.user.Doctor;
-import model.user.User;
 import service.sql.SQLUtil;
 
 import java.sql.Connection;
@@ -41,5 +40,28 @@ public class UserRestriction
         }
         
         return true;
+    }
+    
+    // 检查病房护士是否有负责的患者
+    public static boolean checkWardNurseHasResponsibility(String uID)
+    {
+        try
+        {
+            Connection con = SQLUtil.getConnection();
+            PreparedStatement findResponsiblityByUID = con.prepareStatement("select * from nurse_for_patient " +
+                    "where u_ID=?");
+            findResponsiblityByUID.setString(1, uID);
+            try (ResultSet responsibilityFound = findResponsiblityByUID.executeQuery())
+            {
+                boolean found = responsibilityFound.next();
+                con.close();
+                return found;
+            }
+        }
+        catch (Exception e)
+        {
+            SQLUtil.handleExceptions(e);
+        }
+        return false;
     }
 }
