@@ -65,7 +65,8 @@ create table daily_state(
     symptom varchar(256) NOT NULL,
     result enum('阳性','阴性') NOT NULL, # 检测结果
     life_state enum('康复出院','在院治疗','病亡') NOT NULL, # 生命状态
-    PRIMARY KEY(d_ID)
+    PRIMARY KEY(d_ID),
+    CONSTRAINT person_date UNIQUE (p_ID, date)
 );
 
 # test_sheet 核酸检测单
@@ -75,7 +76,8 @@ create table test_sheet(
     date date NOT NULL, # 检测日期
     result enum('阳性','阴性') NOT NULL, # 检测结果
     ill_state enum('轻症','重症','危重症') NOT NULL, # 病情评级
-    PRIMARY KEY(t_ID)
+    PRIMARY KEY(t_ID),
+    CONSTRAINT person_date UNIQUE (p_ID, date)
 );
 
 create unique index patient_index on patient(p_ID);
