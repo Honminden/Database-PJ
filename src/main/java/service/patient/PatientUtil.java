@@ -46,7 +46,7 @@ public class PatientUtil
                 else
                 {
                     System.out.println(String.format("##......所在区域：%s, 房间号：%s, 床号：%s, 护士号：%s, 护士名：%s",
-                            patient.getArea(), patient.getResidentID(), patient.getbID(),
+                            patient.getArea(), patient.getrID(), patient.getbID(),
                             patient.getuID(), patient.getuName()));
                 }
             }
